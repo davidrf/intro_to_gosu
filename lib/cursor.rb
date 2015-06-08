@@ -1,13 +1,20 @@
 class Cursor
+  Z_COORDINATE = 0
   IMAGE_FILE = "img/cursor.png"
-  attr_reader :window, :image
+  attr_accessor :x_coordinate, :y_coordinate, :image
 
-  def initialize(window)
-    @window = window
-    @image = Gosu::Image.new(window, IMAGE_FILE)
+  def initialize
+    @x_coordinate = 0
+    @y_coordinate = 0
+    @image = Gosu::Image.new(IMAGE_FILE)
+  end
+
+  def update_position(game_window)
+    self.x_coordinate = game_window.mouse_x
+    self.y_coordinate = game_window.mouse_y
   end
 
   def draw
-    image.draw(window.mouse_x, window.mouse_y, 3)
+    image.draw(x_coordinate, y_coordinate, Z_COORDINATE)
   end
 end

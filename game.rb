@@ -10,31 +10,41 @@ class Game < Gosu::Window
   SCREEN_HEIGHT = 900
   FULL_SCREEN = false
 
-  attr_accessor :bricks, :status
+  attr_accessor :bricks, :status, :previous_time
   attr_reader :cursor, :paddle, :ball, :font, :start_button
 
   def initialize
     super(SCREEN_WIDTH, SCREEN_HEIGHT, FULL_SCREEN)
-    @cursor = Cursor.new(self)
+    @cursor = Cursor.new
     @status = :menu
     @bricks = Brick.all(self)
-    @paddle = Paddle.new(self)
-    @ball = Ball.new(self)
+    @paddle = Paddle.new
+    @ball = Ball.new(*center_of_screen_coordinates)
     @font = Gosu::Font.new(self, "Arial", SCREEN_HEIGHT / 20)
     start_button_height = SCREEN_HEIGHT * 7 / 10
     @start_button = Button.centered(self, @font, "Click Here To Play!", start_button_height)
+    @previous_time = Gosu::milliseconds
   end
 
   def update
+    change_in_time = current_time - previous_time
     if status == :menu
-      if start_button_clicked
-        self.status = :playing
-      end
+      cursor.update_position(self)
+      self.status = :playing if start_button_clicked
+    elsif status == :playing
+      paddle.update_position(self)
+      ball.update_position(change_in_time)
     end
 
     if button_down?(Gosu::KbEscape)
       close
     end
+
+    self.previous_time = Gosu::milliseconds
+  end
+
+  def current_time
+    Gosu::milliseconds
   end
 
   def start_button_clicked
@@ -49,6 +59,8 @@ class Game < Gosu::Window
       cursor.draw
     elsif status == :playing
       draw_centered_text(@font, "Playing", 10)
+      paddle.draw
+      ball.draw
     end
   end
 
@@ -65,6 +77,12 @@ class Game < Gosu::Window
     unoccupied_width = SCREEN_WIDTH - text_width
     x_coordinate = unoccupied_width / 2
     draw_text(font, text, x_coordinate, y_coordinate, color)
+  end
+
+  def center_of_screen_coordinates
+    x_coordinate = SCREEN_WIDTH / 2
+    y_coordinate = SCREEN_HEIGHT / 2
+    [x_coordinate, y_coordinate]
   end
 end
 
